@@ -10,7 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 from enum import Enum
 
-from domain.models.url import FetchStatus, AnswerDataFetched
+from domain.models.url import FetchStatus, AnswerDataFetched, AnswerDataClassified
+from inject import settings
 
 
 def get_title_rage(page):  #: requests.models.Request
@@ -220,6 +221,44 @@ async def parse_all_urls(urls: List[str]) -> List[AnswerDataFetched]:
     for result in results:
         pprint(result.status)
     return results
+
+
+def find_related_text(data):
+    url = f"http://{settings.finder_host}:{settings.finder_port}/find_related/"  # Замените на ваш реальный URL
+
+    headers = {"Content-Type": "application/json"}
+    data = {"url": data}
+    # Выполните POST-запрос
+    response = requests.post(url, json=data, headers=headers)
+
+    # Верните результат запроса
+    return response.json()
+
+
+def get_theme_text(data):
+    url = f"http://{settings.classifier_host}:{settings.classifier_port}/classify/"  # Замените на ваш реальный URL
+
+    headers = {"Content-Type": "application/json"}
+
+    data = {
+        "text": data
+    }
+    # Выполните POST-запрос
+    response = requests.post(url, json=data, headers=headers)
+
+    # Верните результат запроса
+    return response.json()
+
+
+async def gateway(urls: List[str]):
+    parsed_data = await parse_all_urls(urls=urls)
+    answer_data: List[AnswerDataClassified] = []
+
+    for parsed_item in parsed_data:
+        if parsed_item.status == FetchStatus.SUCCESSFUL:
+            clean_data = parsed_item.content.get_text().lower()
+            category = get_theme_text(clean_data)
+            related_data = find_related_text(parsed_item.url)
 
 
 if __name__ == "__main__":

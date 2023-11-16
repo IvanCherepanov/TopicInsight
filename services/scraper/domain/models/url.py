@@ -28,4 +28,4 @@ class AnswerDataFetched(BaseModel):
 
 
 class AnswerDataClassified(AnswerDataFetched):
-    category: AnswerClassification
+    category: Optional[AnswerClassification] = None

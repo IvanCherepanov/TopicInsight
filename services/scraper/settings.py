@@ -7,6 +7,10 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     app_port: str
+    classifier_host: str
+    classifier_port: str
+    finder_host: str
+    finder_port: str
     token_algorithm: str
     access_token_expire_minutes: str
     refresh_token_expire_minutes: str
