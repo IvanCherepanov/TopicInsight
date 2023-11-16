@@ -29,3 +29,4 @@ class AnswerDataFetched(BaseModel):
 
 class AnswerDataClassified(AnswerDataFetched):
     category: Optional[AnswerClassification] = None
+    related_links: Optional[List[str]] = None

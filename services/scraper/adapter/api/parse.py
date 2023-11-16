@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
 from domain.models.url import OuterData
-from domain.services.scraper import parse_all_urls
+from domain.services.scraper import parse_all_urls, gateway
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ def read_root():
 @router.post("/process_urls/")
 async def process(list_urls: OuterData):
     # todo: middleware to check url; logg data
-    data = await parse_all_urls(urls=list_urls.urls)
+    data = await gateway(urls=list_urls.urls)
     for url in list_urls:
         print(url)
     return JSONResponse(content=jsonable_encoder(data))

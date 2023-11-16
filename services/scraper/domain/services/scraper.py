@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 import time
 import traceback
 from pprint import pprint
@@ -10,7 +11,7 @@ import requests
 from bs4 import BeautifulSoup
 from enum import Enum
 
-from domain.models.url import FetchStatus, AnswerDataFetched, AnswerDataClassified
+from domain.models.url import FetchStatus, AnswerDataFetched, AnswerDataClassified, AnswerClassification
 from inject import settings
 
 
@@ -256,9 +257,28 @@ async def gateway(urls: List[str]):
 
     for parsed_item in parsed_data:
         if parsed_item.status == FetchStatus.SUCCESSFUL:
-            clean_data = parsed_item.content.get_text().lower()
+            clean_data = BeautifulSoup(parsed_item.content, 'html.parser').get_text().lower()
             category = get_theme_text(clean_data)
+            print(category, type(category))
             related_data = find_related_text(parsed_item.url)
+            print(related_data, type(related_data))
+
+            clean_data = re.sub(r'[\r\n]', ' ', clean_data)
+            clean_data = clean_data.replace("  ", "")
+
+            answer_object = AnswerDataClassified(
+                url=parsed_item.url,
+                status=parsed_item.status,
+                content=clean_data,
+                meta_inf=parsed_item.meta_inf,
+                category=AnswerClassification(
+                    category=category["category"],
+                    theme=category["theme"]
+                ),
+                related_links=related_data["list_url"]
+            )
+            answer_data.append(answer_object)
+    return answer_data
 
 
 if __name__ == "__main__":
